@@ -1,5 +1,12 @@
-FROM prasanthj/docker-tez:tez-0.5.2
-MAINTAINER Prasanth Jayachandran
+FROM prasanthj/docker-hadoop
+
+MAINTAINER Sharad Agarwal
+#Based on Inmobi Hive
+#Builds the InMobi Hive from trunk
+#Configure Postgres DB
+#Starts Hive metastore Server
+#Starts Hive Server2
+
 
 # to configure postgres as hive metastore backend
 RUN apt-get update
@@ -15,10 +22,21 @@ RUN /etc/init.d/postgresql start &&\
      
 # revert back to default user
 USER root
+
+# dev tools to build
+RUN apt-get update
+RUN apt-get install -y git libprotobuf-dev protobuf-compiler
+
+# install maven
+RUN curl -s http://mirror.olnevhost.net/pub/apache/maven/binaries/apache-maven-3.2.1-bin.tar.gz | tar -xz -C /usr/local/
+RUN cd /usr/local && ln -s apache-maven-3.2.1 maven
+ENV MAVEN_HOME /usr/local/maven
+ENV PATH $MAVEN_HOME/bin:$PATH
+
             
 # clone and compile hive
-ENV HIVE_VERSION 0.15.0-SNAPSHOT
-RUN cd /usr/local && git clone https://github.com/apache/hive.git
+ENV HIVE_VERSION 0.13.4-inm-SNAPSHOT
+RUN cd /usr/local && git clone https://github.com/InMobi/hive.git
 RUN cd /usr/local/hive && /usr/local/maven/bin/mvn clean install -DskipTests -Phadoop-2,dist
 RUN mkdir /usr/local/hive-dist && tar -xf /usr/local/hive/packaging/target/apache-hive-${HIVE_VERSION}-bin.tar.gz -C /usr/local/hive-dist
 
@@ -36,7 +54,7 @@ ENV PGPASSWORD hive
 # initialize hive metastore db
 RUN /etc/init.d/postgresql start &&\
 	cd $HIVE_HOME/scripts/metastore/upgrade/postgres/ &&\
- 	psql -h localhost -U hive -d metastore -f hive-schema-0.15.0.postgres.sql
+ 	psql -h localhost -U hive -d metastore -f hive-schema-0.13.0.postgres.sql
 
 # copy config, sql, data files to /opt/files
 RUN mkdir /opt/files
@@ -61,3 +79,8 @@ ENV POSTGRESQL_CONFIG_FILE $POSTGRESQL_MAIN/postgresql.conf
 ENV POSTGRESQL_BIN /usr/lib/postgresql/9.3/bin/postgres
 ADD postgresql.conf $POSTGRESQL_MAIN
 RUN chown postgres:postgres $POSTGRESQL_CONFIG_FILE
+
+
+
+
+

@@ -107,10 +107,10 @@
     <name>hive.optimize.reducededuplication</name>
     <value>true</value>
   </property>
-  <property>
+  <!-- property>
     <name>hive.execution.engine</name>
     <value>tez</value>
-  </property>
+  </property -->
   <property>
     <name>hive.vectorized.execution.enabled</name>
     <value>true</value>
