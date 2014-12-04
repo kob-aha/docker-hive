@@ -6,6 +6,10 @@ Docker image to run Hive
 * Apache Hadoop 2.5.0
 * PostgreSQL 9.3 (Hive metastore backend)
 
-## Pull the images
+## Pull the image
 
-docker pull sharadag/docker-inm-hive
+docker pull inmobi/docker-hive
+
+## Run the image
+
+docker run -itP inmobi/docker-hive /etc/hive-bootstrap.sh -bash
