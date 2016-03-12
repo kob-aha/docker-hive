@@ -35,8 +35,14 @@ ENV PATH $MAVEN_HOME/bin:$PATH
 
             
 # clone and compile hive
-ENV HIVE_VERSION 0.13.4-inm-SNAPSHOT
-RUN cd /usr/local && git clone https://github.com/InMobi/hive.git
+ENV HIVE_VERSION 0.13.4-inm
+RUN cd /usr/local && git clone https://github.com/InMobi/hive.git \
+    && cd hive \
+    && git checkout hive-release-${HIVE_VERSION}
+#ENV HIVE_VERSION 0.14.0
+#RUN cd /usr/local && git clone https://git-wip-us.apache.org/repos/asf/hive.git hive \ 
+#    && cd hive \
+#    && git checkout release-${HIVE_VERSION}
 RUN cd /usr/local/hive && /usr/local/maven/bin/mvn clean install -DskipTests -Phadoop-2,dist
 RUN mkdir /usr/local/hive-dist && tar -xf /usr/local/hive/packaging/target/apache-hive-${HIVE_VERSION}-bin.tar.gz -C /usr/local/hive-dist
 
@@ -52,9 +58,11 @@ RUN ln -s /usr/share/java/postgresql-jdbc4.jar $HIVE_HOME/lib/postgresql-jdbc4.j
 ENV PGPASSWORD hive
 
 # initialize hive metastore db
-RUN /etc/init.d/postgresql start &&\
-	cd $HIVE_HOME/scripts/metastore/upgrade/postgres/ &&\
- 	psql -h localhost -U hive -d metastore -f hive-schema-0.13.0.postgres.sql
+RUN /etc/init.d/postgresql start \    
+    && sleep 10 \
+    && /etc/init.d/postgresql status \
+    && cd $HIVE_HOME/scripts/metastore/upgrade/postgres/ \
+    && psql -h localhost -U hive -d metastore -f hive-schema-0.13.0.postgres.sql
 
 # copy config, sql, data files to /opt/files
 RUN mkdir /opt/files
